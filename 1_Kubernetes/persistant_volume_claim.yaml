@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: my-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce  # This specifies the access mode (e.g., ReadWriteOnce, ReadWriteMany, ReadOnlyMany)
+  resources:
+    requests:
+      storage: 5Gi  # Specify the desired storage size
+  storageClassName: my-storage-class  # Optional: specify the StorageClass name
+  selector:
+    matchLabels:
+      app: my-app  # Optional: selector to match labels of a specific PV
+  volumeMode: Filesystem  # Optional: either Filesystem or Block
+  volumeName: my-pv-name  # Optional: specify the PV name if you have a specific PV in mind
+  dataSource:
+    kind: PersistentVolumeSnapshot  # Optional: specify a data source for creating the PVC
+    name: my-snapshot-name  # Optional: the name of the data source
+    apiGroup: snapshot.storage.k8s.io  # Optional: the API group of the data source

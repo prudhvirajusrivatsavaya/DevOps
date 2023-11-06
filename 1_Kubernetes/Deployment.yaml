@@ -1,0 +1,139 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-deployment
+  namespace: my-namespace
+  labels:
+    app: my-app
+    environment: production
+  annotations:
+    description: This resource is for the production environment
+    key2: value2
+  generateName: my-deployment-
+  finalizers:
+    - my-finalizer
+  ownerReferences:
+    - apiVersion: apps/v1
+      kind: ReplicaSet
+      name: my-replicaset
+  clusterName: my-cluster
+  deletionTimestamp: "2023-10-31T12:00:00Z"
+  creationTimestamp: "2023-10-31T11:00:00Z"
+  resourceVersion: "1234567890"
+  selfLink: /api/v1/namespaces/my-namespace/deployments/my-deployment
+  uid: a1234567-8901-2345-6789-012345678901
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: my-app
+  template:
+    metadata:
+      labels:
+        app: my-app
+      annotations:
+        key: value
+    spec:
+      `containers:
+      - name: my-container
+        image: nginx:latest
+        ports:
+        - containerPort: 80
+        envFrom:
+        - configMapRef:
+            name:my-config
+        env:
+        - name: DB-PORT
+          valueFrom:
+            configMapKeyRef:
+              name: test-cm
+              key: db-port
+        - name: MY_ENV_VAR
+          value: "my-value"
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "250m"
+          limits:
+            memory: "128Mi"
+            cpu: "500m"
+        volumeMounts:
+        - name: my-volume
+          mountPath: /my-volume-path
+        livenessProbe:
+          tcpSocket:
+            port:5000
+          initailDelaySeconds:3
+          timeoutSeconds:1
+          periodSeconds:20
+          sucessThreshold:1
+          failureThreshold:3
+        readinessProbe:
+          tcpSocket:
+              port:5000
+          initailDelaySeconds:3
+          timeoutSeconds:1
+          periodSeconds:20
+          sucessThreshold:1
+          failureThreshold:3
+        imagePullPolicy: Always
+      imagePullSecrets:
+      - name: my-registry-secret
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 3000
+      volumes:
+      - name: config-volume
+        configMap:
+          name: my-config
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1
+  revisionHistoryLimit: 10
+  progressDeadlineSeconds: 600
+  minReadySeconds: 10
+  paused: false
+  rollbackTo:
+    revision: 2
+  progressDeadlineSeconds: 600
+  selector:
+    matchLabels:
+      app: my-app
+  template:
+    metadata:
+      labels:
+        app: my-app
+    spec:
+      securityContext:
+        fsGroup: 2000
+      volumes:
+      - name: my-volume
+        emptyDir: {}
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: nodeType
+                operator: In
+                values:
+                - worker
+      tolerations:
+      - key: key
+        operator: Equal
+        value: value
+  scale:
+    replicas: 5
+    timeoutSeconds: 300
+  readinessGates:
+  - conditionType: pod-published
+  volumes:
+  - name: my-volume
+    configMap:
+      name: my-configmap
+  - name: my-secret-volume
+    secret:
+      secretName: my-secret
+  activeDeadlineSeconds: 3600
